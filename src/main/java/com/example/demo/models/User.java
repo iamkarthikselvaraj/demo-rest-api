@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 @Document(collection = "users")
 public class User {
 	@Id
@@ -12,7 +14,7 @@ public class User {
 	private String firstname;
 
 	private String lastname;
-
+	@DateTimeFormat(iso = ISO.DATE)
 	private Date dob;
 
 	private String mobile_no;

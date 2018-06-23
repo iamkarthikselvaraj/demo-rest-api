@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 //@JsonIgnoreProperties(value = { "createdAt" }, allowGetters = true)
 public class Login {
 	@Id
-	private String id;
+	private String _id;
 
 	@NotBlank
 	@Size(max = 100)
@@ -45,11 +45,11 @@ public class Login {
 	}
 	
 	public String getId() {
-		return id;
+		return _id;
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		this._id = id;
 	}
 
 	public String getUsername() {

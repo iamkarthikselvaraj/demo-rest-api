@@ -4,18 +4,23 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.models.Login;
+import com.example.demo.models.Response;
 import com.example.demo.models.User;
 import com.example.demo.repositories.LoginRepository;
 import com.example.demo.repositories.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/user")
 @CrossOrigin("*")
 public class UserController {
 
@@ -25,27 +30,36 @@ public class UserController {
 	@Autowired
 	UserRepository userRepository;
 
-	@GetMapping("/user")
-	public List<Login> getAllUsers() {
+	@GetMapping("/list")
+	public ResponseEntity<?> getAllUsers() {
 		Sort sortByCreatedAtDesc = new Sort(Sort.Direction.DESC, "createdAt");
-		return loginRepository.findAll(sortByCreatedAtDesc);
+		return new ResponseEntity<>(userRepository.findAll(sortByCreatedAtDesc), HttpStatus.OK);
 	}
 
-	@PostMapping("/create-user")
-	public Login createUser(@Valid @RequestBody Login login) {
+	@PostMapping("/create")
+	public ResponseEntity<?> createUser(@Valid @RequestBody Login login) {
 		login.setCreatedBy("admin");
-		userRepository.save(login.getUser());
-//		login.setUser(user);
-		return loginRepository.save(login);
+		
+		if (!loginRepository.existsByUsername(login.getUsername())) {
+			userRepository.save(login.getUser());
+
+			loginRepository.save(login);
+			return new ResponseEntity<>(new Response("success", "User created successfully."),
+					HttpStatus.OK);			
+			
+		} else {
+			return new ResponseEntity<>(new Response("failure", "Username already exist."), HttpStatus.OK);
+		}
+
 	}
 
-	@GetMapping(value = "/user/{id}")
-	public ResponseEntity<User> getUserById(@PathVariable("id") String id) {
-		return userRepository.findById(id).map(user -> ResponseEntity.ok().body(user))
-				.orElse(ResponseEntity.notFound().build());
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<?> getUserById(@PathVariable("id") String id) {
+		return userRepository.findById(id).map(user -> ResponseEntity.ok().body(new Response("success", "",user)))
+				.orElse(ResponseEntity.ok().body(new Response("failure", "User not found")));
 	}
 
-	@PutMapping(value = "/user/{id}")
+	@PutMapping(value = "/{id}")
 	public ResponseEntity<User> updateUser(@PathVariable("id") String id, @Valid @RequestBody User user) {
 		return userRepository.findById(id).map(userData -> {
 			userData.setFirstname(user.getFirstname());
@@ -55,11 +69,12 @@ public class UserController {
 		}).orElse(ResponseEntity.notFound().build());
 	}
 
-	@DeleteMapping(value = "/user/{id}")
+	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<?> deleteUser(@PathVariable("id") String id) {
 		return userRepository.findById(id).map(user -> {
 			userRepository.deleteById(id);
 			return ResponseEntity.ok().build();
 		}).orElse(ResponseEntity.notFound().build());
+
 	}
 }
